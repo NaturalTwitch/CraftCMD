@@ -1,10 +1,9 @@
 const mineflayer = require('mineflayer');
-const Discord = require('discord.js')
+const Discord = require('discord.js');
 const fs = require('fs');
 const ini = require('ini');
 const readline = require('readline');
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
-// Read and parse the INI file
 const config = ini.parse(fs.readFileSync('./setup.ini', 'utf-8'));
 
 console.log(`CraftCMD by NaturalTwitch`)
@@ -50,9 +49,9 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
             .setTitle(`CraftCMD by NaturalTwitch`)
             .setDescription(`**${bot.username}** is Now Online! \n Server IP: ${config.General.serverIP}`)
 
-        
+
         if (channel) {
-            channel.send({embeds: [discordOnline]})
+            channel.send({ embeds: [discordOnline] })
         }
     });
 
@@ -61,8 +60,15 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
     });
 
     client.on('messageCreate', (message) => {
-        if(message.author.bot) return;
-        bot.chat(`[${message.author.username}] ${message}`)
+        const channel = config.Advanced.channelID
+        const approved = config.Advanced.approvedDiscordUsers; // Array of Discord User IDs
+
+        if (!approved.includes(message.author.id)) {
+            return
+        }
+        if (message.channel.id !== channel) return;
+        if (message.author.bot) return; // Return if the author is a bot and not a approved discord user or sent in the channel
+        bot.chat(`${message}`)
     })
 
     bot.on('messagestr', (message, messagePosition, jsonMsg, sender, verified) => {
@@ -73,15 +79,34 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
         const tpRequest = /^(.*) has requested to teleport to you\.|^(.*) has requested that you teleport to them\.$/;
         const match = message.match(tpRequest);
 
+
         if (match) {
             const senderName = match[1] || match[2];
+
+            const tpEmbed = new Discord.EmbedBuilder()
+                .setColor(`00FF00`)
+                .setTitle(`Teleport Request`)
+                .setDescription(`${match[0]}`)
+
+            const row = new Discord.ActionRowBuilder()
+                .addComponents(
+                    new Discord.ButtonBuilder()
+                        .setCustomId('accept')
+                        .setLabel(`Accept`)
+                        .setStyle(1),
+                    new Discord.ButtonBuilder()
+                        .setCustomId(`deny`)
+                        .setLabel(`Deny`)
+                        .setStyle(4)
+                )
+
+            channel.send({ embeds: [tpEmbed], components: [row] })
 
             if (config.Advanced.botOwners.includes(senderName)) {
                 console.log(`Yes sir, teleport request from ${senderName} accepted.`);
                 bot.chat(`/tpaccept ${senderName}`);
             } else {
-                bot.chat(`/tpdeny`);
-                console.log(`Teleport request from ${senderName} denied, not a bot owner.`);
+                console.log(`Teleport Request from ${senderName}`);
             }
         }
 
@@ -89,6 +114,20 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
 
         // console.log(`${message}, ${messagePosition}, ${jsonMsg}, ${sender}, ${verified}`);
     });
+
+    client.on('interactionCreate', async (interaction) => {
+        if (!interaction.isButton()) return;
+
+        const { customId } = interaction;
+
+        if (customId === 'accept') {
+            console.log(`[Discord Bridge] sending command /tpaccept`)
+            bot.chat(`/tpaccept`)
+        } else if (customId === 'deny') {
+            console.log(`[Discord Bridge] sending command /tpdeny`)
+            bot.chat(`/tpdeny`)
+        }
+    })
 
     rl.on('line', async (msg) => {
         bot.chat(msg)
