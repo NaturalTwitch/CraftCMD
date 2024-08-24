@@ -1,0 +1,21 @@
+{
+  "name": "craftcmd",
+  "version": "0.0.1",
+  "description": "Console Client for Minecraft",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Console",
+    "Minecraft",
+    "Player"
+  ],
+  "author": "NaturalTwitch",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.15.3",
+    "ini": "^4.1.3",
+    "mineflayer": "^4.20.1"
+  }
+}
