@@ -50,8 +50,8 @@ A simple Minecraft bot using the Mineflayer library that connects to a Minecraft
 - **`serverIP`**: The IP address of the Minecraft server to connect to.
 - **`serverPort`**: The port number of the Minecraft server (default is 25565).
 - **`serverVersion`**: The version of the Minecraft server.
-- **`discordBridge`**: A boolean value indicating if Discord integration is enabled (not implemented in this version).
-- **`discord_token`**: The token for Discord integration (not used in this version).
+- **`discordBridge`**: A boolean value indicating if Discord integration is enabled.
+- **`discord_token`**: The token for Discord integration.
 - **`botOwners`**: An array of usernames who are allowed to request teleportation.
 
 ## Contributing
