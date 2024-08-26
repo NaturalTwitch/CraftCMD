@@ -6,7 +6,7 @@ const readline = require('readline');
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
 const { spawn } = require('child_process');
 const https = require('https');
-const packageVersion = "1.14.0"; // Local version
+const packageVersion = "2.0.0"; // Local version
 
 const path = './setup.ini';
 
@@ -67,6 +67,7 @@ console.log(`*          CraftCMD            *`)
 console.log(`*      By NaturalTwitch        *`)
 console.log(`********************************`)
 process.stdout.write(`\x1B]0;CraftCMD - NaturalTwitch\x07`);
+checkForUpdates();
 setInterval(() => {
     checkForUpdates();
 }, 60000)
@@ -378,7 +379,7 @@ function restartProgram() {
 
 }
 
-function checkForUpdates() {
+async function checkForUpdates() {
     const options = {
         hostname: 'raw.githubusercontent.com',
         path: '/NaturalTwitch/CraftCMD/main/version.json',
@@ -388,7 +389,7 @@ function checkForUpdates() {
         }
     };
 
-    https.get(options, (res) => {
+   await https.get(options, (res) => {
         let data = '';
 
         res.on('data', (chunk) => {
@@ -399,9 +400,9 @@ function checkForUpdates() {
             try {
                 const remoteVersion = JSON.parse(data).version;
                 if (remoteVersion !== packageVersion) {
-                    console.log(`\n[Update Available] A new version (${remoteVersion}) is available. Please update your bot.`);
+                    console.log("\x1b[33m%s\x1b[0m", `[Update Available] A new version (${remoteVersion}) is available. \nCurrent version is (${packageVersion}). \nPlease update your bot.`);
                 } else {
-                    console.log(`\n[CraftCMD] Your version (${packageVersion}) is up to date.`);
+                    console.log("\x1b[32m%s\x1b[0m", `[CraftCMD] Your version (${packageVersion}) is up to date.`);
                 }
             } catch (e) {
                 console.error('Error parsing version data from GitHub:', e);
