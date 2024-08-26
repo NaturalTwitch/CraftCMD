@@ -4,7 +4,60 @@ const fs = require('fs');
 const ini = require('ini');
 const readline = require('readline');
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
-const config = ini.parse(fs.readFileSync('./setup.ini', 'utf-8'));
+const { spawn } = require('child_process');
+
+const path = './setup.ini';
+
+// Default configuration with comments
+const defaultConfigContent = `
+# General Settings
+[General]
+email=example@mursybot.com        # Email to use for logging in
+password=123456789       # Password to your microsoft account
+serverIP=play.mursybot.com  # Server IP for the Minecraft server you are joining
+serverPort=25565  # Minecraft server port !! Default port is 25565 !!
+serverVersion=1.20.4 # Minecraft server Version (highest 1.20.4) is if the server version is unknown
+
+# Advanced Settings
+[Advanced]
+discordBridge=false
+discord_token=  # Discord App Token
+channelID=1228268474590167042      # Channel you want the messages sent to
+approvedDiscordUsers=["513413045251342336"]    # Set the User ID of the approved chat users
+botOwners=["NaturalTwitch"] # Bot Owner for auto Teleport Accept
+
+# Auto Log
+[AutoLog]
+enable=true
+rejoinTime=5000 # In milliseconds
+
+# AntiAFK Settings
+[AntiAFK]
+antiAfk=false
+afkTime=60000 # In milliseconds
+afkCommand=/home
+
+# AutoAttack Settings
+[AutoAttack]
+enable=false  # Enables Auto Attack of Hostile Mobs
+armSwing=true  # Toggle Arm Swing when attacking !! Default is true !!
+`;
+
+// Function to check and create setup.ini file
+function ensureConfigFile() {
+    if (!fs.existsSync(path)) {
+        console.log('Configuration file not found. Creating setup.ini, Please change your log in settings.');
+        fs.writeFileSync(path, defaultConfigContent.trim());
+        console.log('Default configuration written to setup.ini');
+        process.exit()
+    }
+}
+
+// Call the function at the start of your script
+ensureConfigFile();
+
+// Read the configuration file
+const config = ini.parse(fs.readFileSync(path, 'utf-8'));
 
 //Starting Logo
 console.log(`********************************`)
@@ -59,7 +112,7 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
         if (channel) {
             channel.send({ embeds: [discordOnline] })
         }
-        
+
     });
 
     bot.on('chat', (username, message, translate, jsonMsg, Matches) => {
@@ -78,6 +131,8 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
     //     console.log("Physics updated:", physics)
     // })
 
+
+    //Discord Bridge chat sender
     client.on('messageCreate', (message) => {
         const channel = config.Advanced.channelID
         const approved = config.Advanced.approvedDiscordUsers; // Array of Discord User IDs
@@ -90,12 +145,13 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
         bot.chat(`${message}`)
     })
 
+    // Message Handler to Discord and Console
     bot.on('messagestr', (message, messagePosition, jsonMsg, sender, verified) => {
         const channel = client.channels.cache.find((x) => (x.id === config.Advanced.channelID))
 
-        if(message.includes(`Next Shard`)) return;
+        if (message.includes(`Next Shard`)) return;
 
-        if(message === "") return;
+        if (message === "") return;
         if (channel) {
             channel.send(message)
         }
@@ -182,17 +238,24 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
     bot.on('kicked', (r) => {
         console.log(`You were kicked for ${r}`)
         setTimeout(() => {
-            process.exit()
+            if (config.AutoLog.enable) {
+                restartProgram()
+            } else {
+                process.exit()
+            }
         }, config.Advanced.rejoinTime)
     });
 
     bot.on('error', (e) => {
         console.log(`Disconnected by error: ${e}`)
         setTimeout(() => {
-            process.exit()
+            if (config.AutoLog.enable) {
+                restartProgram()
+            } else {
+                process.exit()
+            }
         }, config.Advanced.rejoinTime)
     })
-
 
     rl.on('line', async (msg) => {
         bot.chat(msg)
@@ -223,7 +286,7 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
     bot.on('messagestr', (message, messagePosition, jsonMsg, sender, verified) => {
         const tpRequest = /^(.*) has requested to teleport to you\.|^(.*) has requested that you teleport to them\.$/;
 
-        if(message.includes(`Next Shard`)) return;
+        if (message.includes(`Next Shard`)) return;
 
         const match = message.match(tpRequest);
 
@@ -247,14 +310,22 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
     bot.on('kicked', (r) => {
         console.log(`You were kicked for ${r}`)
         setTimeout(() => {
-            process.exit()
+            if (config.AutoLog.enable) {
+                restartProgram()
+            } else {
+                process.exit()
+            }
         }, config.Advanced.rejoinTime)
     });
 
     bot.on('error', (e) => {
         console.log(`Disconnected by error: ${e}`)
         setTimeout(() => {
-            process.exit()
+            if (config.AutoLog.enable) {
+                restartProgram()
+            } else {
+                process.exit()
+            }
         }, config.Advanced.rejoinTime)
     })
 
@@ -287,5 +358,16 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
             bot.chat(config.AntiAFK.afkCommand)
         }, config.AntiAFK.afkTime)
     }
+
+}
+
+
+function restartProgram() {
+    // Spawn a new process with the same script
+    spawn(process.argv[0], process.argv.slice(1), {
+        cwd: process.cwd(),
+        detached: false,
+        stdio: 'inherit'
+    }).unref();
 
 }
