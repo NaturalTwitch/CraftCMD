@@ -5,6 +5,8 @@ const ini = require('ini');
 const readline = require('readline');
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
 const { spawn } = require('child_process');
+const https = require('https');
+const packageVersion = "1.14.0"; // Local version
 
 const path = './setup.ini';
 
@@ -64,7 +66,11 @@ console.log(`********************************`)
 console.log(`*          CraftCMD            *`)
 console.log(`*      By NaturalTwitch        *`)
 console.log(`********************************`)
-process.stdout.write(`\x1B]0;CraftCMD - Mursy Development\x07`);
+process.stdout.write(`\x1B]0;CraftCMD - NaturalTwitch\x07`);
+setInterval(() => {
+    checkForUpdates();
+}, 60000)
+
 
 
 // Discord Bridge
@@ -104,7 +110,7 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
 
         const discordOnline = new Discord.EmbedBuilder()
             .setColor(`00FF00`)
-            .setTitle(`CraftCMD - Mursy Development`)
+            .setTitle(`CraftCMD - NaturalTwitch`)
             .setThumbnail(`https://cdn.mursybot.com/sharing/CraftCMD.png`)
             .setDescription(`**${bot.username}** is Now Online! \n Server IP: ${config.General.serverIP}`)
 
@@ -370,4 +376,38 @@ function restartProgram() {
         stdio: 'inherit'
     }).unref();
 
+}
+
+function checkForUpdates() {
+    const options = {
+        hostname: 'raw.githubusercontent.com',
+        path: '/NaturalTwitch/CraftCMD/main/version.json',
+        method: 'GET',
+        headers: {
+            'User-Agent': 'node.js'
+        }
+    };
+
+    https.get(options, (res) => {
+        let data = '';
+
+        res.on('data', (chunk) => {
+            data += chunk;
+        });
+
+        res.on('end', () => {
+            try {
+                const remoteVersion = JSON.parse(data).version;
+                if (remoteVersion !== packageVersion) {
+                    console.log(`\n[Update Available] A new version (${remoteVersion}) is available. Please update your bot.`);
+                } else {
+                    console.log(`\n[CraftCMD] Your version (${packageVersion}) is up to date.`);
+                }
+            } catch (e) {
+                console.error('Error parsing version data from GitHub:', e);
+            }
+        });
+    }).on('error', (e) => {
+        console.error('Error checking for updates:', e);
+    });
 }
