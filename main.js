@@ -70,7 +70,7 @@ process.stdout.write(`\x1B]0;CraftCMD - NaturalTwitch\x07`);
 checkForUpdates();
 setInterval(() => {
     checkForUpdates();
-}, 60000)
+}, 86400000)
 
 
 
