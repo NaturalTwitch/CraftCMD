@@ -6,7 +6,7 @@ const readline = require('readline');
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
 const { spawn } = require('child_process');
 const https = require('https');
-const packageVersion = "2.0.0"; // Local version
+const packageVersion = "2.1.0"; // Local version
 
 const path = './setup.ini';
 
@@ -43,6 +43,10 @@ afkCommand=/home
 [AutoAttack]
 enable=false  # Enables Auto Attack of Hostile Mobs
 armSwing=true  # Toggle Arm Swing when attacking !! Default is true !!
+
+# Auto Welcomes Players (Do Not Enable if the server puts you in vanish for teleporting)
+[AutoWelcome]
+enable=true
 `;
 
 // Function to check and create setup.ini file
@@ -201,6 +205,18 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
         // console.log(`${message}, ${messagePosition}, ${jsonMsg}, ${sender}, ${verified}`);
     });
 
+
+    setTimeout(() => {
+        bot.on('playerJoined', (player) => {
+            if (config.AutoWelcome.enable) {
+
+                bot.chat(`Welcome ${player.username}!`)
+
+            }
+        })
+    }, 10000)
+
+
     client.on('interactionCreate', async (interaction) => {
         if (!interaction.isButton()) return;
 
@@ -314,6 +330,16 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
         // console.log(`${message}, ${messagePosition}, ${jsonMsg}, ${sender}, ${verified}`);
     });
 
+    setTimeout(() => {
+        bot.on('playerJoined', (player) => {
+            if (config.AutoWelcome.enable) {
+
+                bot.chat(`Welcome ${player.username}!`)
+
+            }
+        })
+    }, 10000)
+
     bot.on('kicked', (r) => {
         console.log(`You were kicked for ${r}`)
         setTimeout(() => {
@@ -389,7 +415,7 @@ async function checkForUpdates() {
         }
     };
 
-   await https.get(options, (res) => {
+    await https.get(options, (res) => {
         let data = '';
 
         res.on('data', (chunk) => {
