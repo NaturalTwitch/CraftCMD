@@ -8,7 +8,7 @@ const rl = readline.createInterface({ input: process.stdin, output: process.stdo
 const { spawn } = require('child_process');
 const { createCanvas } = require('canvas');
 const https = require('https');
-const packageVersion = "2.2.0"; // Local version
+const packageVersion = "2.3.0"; // Local version
 
 const path = './setup.ini';
 
@@ -29,6 +29,15 @@ discord_token=  # Discord App Token
 channelID=1228268474590167042      # Channel you want the messages sent to
 approvedDiscordUsers=["513413045251342336"]    # Set the User ID of the approved chat users
 botOwners=["NaturalTwitch"] # Bot Owner for auto Teleport Accept
+
+# For the Auto Teleport Request Message make sure to keep ^ [message1] \.$ for message one
+# The | separates multiple teleport messages
+# If there are 2 kinds your Teleport Request should look like ^ [message1] \.|^ [message2] \.$
+# in order for it to work properly use (.*) to make sure you filter out the username
+# It will auto accept all bot owners
+[AutoTeleport]
+enable=true # Enable/Disable Teleportation
+teleportRequest=^(.*) has requested to teleport to you\.|^(.*) has requested that you teleport to them\.$
 
 # Auto Log
 [AutoLog]
@@ -155,9 +164,13 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
         const channel = client.channels.cache.find((x) => (x.id === config.Advanced.channelID))
 
 
-        if (message.includes(`Next Shard`)) return;
-        // if (message.includes("WANT A FREE RANK?")) return;
 
+        if (messagePosition === "game_info") {
+            console.log(message);
+            return;
+        }
+
+        if (message.includes(`Next Shard`)) return;
         // Prevented Empty Message From Sending 2024-08-29 (NT)
         if (!message || message.trim() === "") {
             return;
@@ -171,37 +184,42 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
             console.log(e)
             return;
         }
-        const tpRequest = /^(.*) has requested to teleport to you\.|^(.*) has requested that you teleport to them\.$/;
-        const match = message.match(tpRequest);
+
+        // Editable Auto Teleport
+        if (config.AutoTeleport.enable) {
+            const tpRequest = new RegExp(config.AutoTeleport.teleportRequest);
+            const match = message.match(tpRequest);
 
 
-        if (match) {
-            const senderName = match[1] || match[2];
 
-            const tpEmbed = new Discord.EmbedBuilder()
-                .setColor(`00FF00`)
-                .setTitle(`Teleport Request`)
-                .setDescription(`${match[0]}`)
+            if (match) {
+                const senderName = match[1] || match[2];
 
-            const row = new Discord.ActionRowBuilder()
-                .addComponents(
-                    new Discord.ButtonBuilder()
-                        .setCustomId('accept')
-                        .setLabel(`Accept`)
-                        .setStyle(1),
-                    new Discord.ButtonBuilder()
-                        .setCustomId(`deny`)
-                        .setLabel(`Deny`)
-                        .setStyle(4)
-                )
+                const tpEmbed = new Discord.EmbedBuilder()
+                    .setColor(`00FF00`)
+                    .setTitle(`Teleport Request`)
+                    .setDescription(`${match[0]}`)
 
-            channel.send({ embeds: [tpEmbed], components: [row] })
+                const row = new Discord.ActionRowBuilder()
+                    .addComponents(
+                        new Discord.ButtonBuilder()
+                            .setCustomId('accept')
+                            .setLabel(`Accept`)
+                            .setStyle(1),
+                        new Discord.ButtonBuilder()
+                            .setCustomId(`deny`)
+                            .setLabel(`Deny`)
+                            .setStyle(4)
+                    )
 
-            if (config.Advanced.botOwners.includes(senderName)) {
-                console.log(`Yes sir, teleport request from ${senderName} accepted.`);
-                bot.chat(`/tpaccept ${senderName}`);
-            } else {
-                console.log(`Teleport Request from ${senderName}`);
+                channel.send({ embeds: [tpEmbed], components: [row] })
+
+                if (config.Advanced.botOwners.includes(senderName)) {
+                    console.log(`Yes sir, teleport request from ${senderName} accepted.`);
+                    bot.chat(`/tpaccept ${senderName}`);
+                } else {
+                    console.log(`Teleport Request from ${senderName}`);
+                }
             }
         }
 
@@ -265,7 +283,7 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
     }
 
     bot.on('kicked', (r) => {
-        console.log(`You were kicked for ${r}`)
+        console.log(r)
         setTimeout(() => {
             if (config.AutoLog.enable) {
                 restartProgram()
@@ -313,21 +331,31 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
     });
 
     bot.on('messagestr', (message, messagePosition, jsonMsg, sender, verified) => {
-        const tpRequest = /^(.*) has requested to teleport to you\.|^(.*) has requested that you teleport to them\.$/;
+        if (messagePosition === "game_info") {
+            console.log(message);
+            return;
+        }
 
-        if (message.includes(`Next Shard`)) return;
+        console.log(config.AutoTeleport.teleportRequest)
 
-        const match = message.match(tpRequest);
 
-        if (match) {
-            const senderName = match[1] || match[2];
+        if (config.AutoTeleport.enable) {
+            const tpRequest = `${config.AutoTeleport.teleportRequest}`;
 
-            if (config.Advanced.botOwners.includes(senderName)) {
-                console.log(`Yes sir, teleport request from ${senderName} accepted.`);
-                bot.chat(`/tpaccept ${senderName}`);
-            } else {
-                bot.chat(`/tpdeny`);
-                console.log(`Teleport request from ${senderName} denied, not a bot owner.`);
+            if (message.includes(`Next Shard`)) return;
+
+            const match = message.match(tpRequest);
+
+            if (match) {
+                const senderName = match[1] || match[2];
+
+                if (config.Advanced.botOwners.includes(senderName)) {
+                    console.log(`Yes sir, teleport request from ${senderName} accepted.`);
+                    bot.chat(`/tpaccept ${senderName}`);
+                } else {
+                    bot.chat(`/tpdeny`);
+                    console.log(`Teleport request from ${senderName} denied, not a bot owner.`);
+                }
             }
         }
 
@@ -347,7 +375,7 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
     }, 10000)
 
     bot.on('kicked', (r) => {
-        console.log(`You were kicked for ${r}`)
+        console.log(r)
         setTimeout(() => {
             if (config.AutoLog.enable) {
                 restartProgram()
