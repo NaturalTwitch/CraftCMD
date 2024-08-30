@@ -1,12 +1,14 @@
 const mineflayer = require('mineflayer');
+
 const Discord = require('discord.js');
 const fs = require('fs');
 const ini = require('ini');
 const readline = require('readline');
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
 const { spawn } = require('child_process');
+const { createCanvas } = require('canvas');
 const https = require('https');
-const packageVersion = "2.1.0"; // Local version
+const packageVersion = "2.2.0"; // Local version
 
 const path = './setup.ini';
 
@@ -130,18 +132,10 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
 
     });
 
-    // bot.once('spawn', () => {
-    //     const physics = bot.physics;
-
-    //     physics.liquidAcceleration = 10
-    //     physics.waterInertia = 0.2
-    //     physics.negligeableVelocity = -1.0 // Default 0.003
-    //     // physics.gravity = 0.05 // Default 0.08
-    //     // physics.playerHeight = 1.0
-
-    //     console.log("Physics updated:", physics)
-    // })
-
+    client.on('error', (e) => {
+        console.log(e)
+        return;
+    })
 
     //Discord Bridge chat sender
     client.on('messageCreate', (message) => {
@@ -160,11 +154,22 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
     bot.on('messagestr', (message, messagePosition, jsonMsg, sender, verified) => {
         const channel = client.channels.cache.find((x) => (x.id === config.Advanced.channelID))
 
-        if (message.includes(`Next Shard`)) return;
 
-        if (message === "") return;
-        if (channel) {
-            channel.send(message)
+        if (message.includes(`Next Shard`)) return;
+        // if (message.includes("WANT A FREE RANK?")) return;
+
+        // Prevented Empty Message From Sending 2024-08-29 (NT)
+        if (!message || message.trim() === "") {
+            return;
+        }
+
+        try {
+            if (channel) {
+                channel.send(message)
+            }
+        } catch (e) {
+            console.log(e)
+            return;
         }
         const tpRequest = /^(.*) has requested to teleport to you\.|^(.*) has requested that you teleport to them\.$/;
         const match = message.match(tpRequest);
@@ -215,6 +220,7 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
             }
         })
     }, 10000)
+
 
 
     client.on('interactionCreate', async (interaction) => {
@@ -366,6 +372,7 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
         bot.chat(msg)
     })
 
+
     if (config.AutoAttack.enable) {
         setInterval(() => {
             const hostileMobs = Object.values(bot.entities).filter(entity => entity.kind === 'Hostile mobs');
@@ -438,3 +445,4 @@ async function checkForUpdates() {
         console.error('Error checking for updates:', e);
     });
 }
+
