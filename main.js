@@ -8,7 +8,7 @@ const rl = readline.createInterface({ input: process.stdin, output: process.stdo
 const { spawn } = require('child_process');
 const { createCanvas } = require('canvas');
 const https = require('https');
-const packageVersion = "2.3.0"; // Local version
+const packageVersion = "2.4.0"; // Local version
 
 const path = './setup.ini';
 
@@ -164,7 +164,6 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
         const channel = client.channels.cache.find((x) => (x.id === config.Advanced.channelID))
 
 
-
         if (messagePosition === "game_info") {
             console.log(message);
             return;
@@ -185,7 +184,7 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
             return;
         }
 
-        // Editable Auto Teleport
+        // Editable Auto Teleport 2024-08-30 (NT)
         if (config.AutoTeleport.enable) {
             const tpRequest = new RegExp(config.AutoTeleport.teleportRequest);
             const match = message.match(tpRequest);
@@ -443,7 +442,7 @@ function restartProgram() {
 async function checkForUpdates() {
     const options = {
         hostname: 'raw.githubusercontent.com',
-        path: '/NaturalTwitch/CraftCMD/main/version.json',
+        path: '/NaturalTwitch/CraftCMD/main/package.json',
         method: 'GET',
         headers: {
             'User-Agent': 'node.js'
@@ -473,4 +472,3 @@ async function checkForUpdates() {
         console.error('Error checking for updates:', e);
     });
 }
-
