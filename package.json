@@ -1,6 +1,6 @@
 {
   "name": "craftcmd",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "description": "Console Client for Minecraft",
   "main": "main.js",
   "bin": "main.js",
