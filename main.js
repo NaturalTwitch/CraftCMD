@@ -1,5 +1,5 @@
 const mineflayer = require('mineflayer');
-
+const path1 = require('path');
 const Discord = require('discord.js');
 const fs = require('fs');
 const ini = require('ini');
@@ -8,9 +8,10 @@ const rl = readline.createInterface({ input: process.stdin, output: process.stdo
 const { spawn } = require('child_process');
 const { createCanvas } = require('canvas');
 const https = require('https');
-const packageVersion = "2.5.0"; // Local version
-
+const packageVersion = "3.0.0"; // Local version
 const path = './setup.ini';
+
+
 
 // Default configuration with comments
 const defaultConfigContent = `
@@ -134,10 +135,6 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
         if (channel) {
             channel.send({ embeds: [discordOnline] })
         }
-
-    });
-
-    bot.on('chat', (username, message, translate, jsonMsg, Matches) => {
 
     });
 
@@ -303,9 +300,45 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
         }, config.Advanced.rejoinTime)
     })
 
+    // Command handler object
+    const commandHandler = {};
+    const prefix = '/'
+
+    // Function to load commands from the consoleCommands directory
+    const loadCommands = (dir) => {
+        const commandFiles = fs.readdirSync(dir);
+
+        commandFiles.forEach(file => {
+            const commandPath = path1.join(dir, file);
+            if (fs.lstatSync(commandPath).isDirectory()) {
+                // Recursively load commands from subdirectories
+                loadCommands(commandPath);
+            } else if (file.endsWith('.js')) {
+                const command = require(commandPath);
+                const commandName = file.split('.js')[0];
+                commandHandler[commandName] = command;
+            }
+        });
+    };
+
+    // Load commands from the consoleCommands directory
+    loadCommands(path1.join(__dirname, 'consoleCommands'));
+
     rl.on('line', async (msg) => {
-        bot.chat(msg)
-    })
+        if (msg.startsWith(prefix)) {
+            const args = msg.slice(prefix.length).trim().split(' ');
+            const command = args.shift().toLowerCase();  // Extract the command part
+
+
+            if (commandHandler[command]) {
+                commandHandler[command](bot, args);
+            } else {
+                bot.chat(msg); // Default behavior if the command is not found
+            }
+        } else {
+            bot.chat(msg)
+        }
+    });
 
     client.login(config.Advanced.discord_token);
 
@@ -334,9 +367,6 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
             console.log(message);
             return;
         }
-
-        console.log(config.AutoTeleport.teleportRequest)
-
 
         if (config.AutoTeleport.enable) {
             const tpRequest = new RegExp(config.AutoTeleport.teleportRequest);
@@ -395,9 +425,46 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
         }, config.Advanced.rejoinTime)
     })
 
+    // Command handler object
+    const commandHandler = {};
+    const prefix = '/'
+
+    // Function to load commands from the consoleCommands directory
+    const loadCommands = (dir) => {
+        const commandFiles = fs.readdirSync(dir);
+
+        commandFiles.forEach(file => {
+            const commandPath = path1.join(dir, file);
+            if (fs.lstatSync(commandPath).isDirectory()) {
+                // Recursively load commands from subdirectories
+                loadCommands(commandPath);
+            } else if (file.endsWith('.js')) {
+                const command = require(commandPath);
+                const commandName = file.split('.js')[0];
+                commandHandler[commandName] = command;
+            }
+        });
+    };
+
+    // Load commands from the consoleCommands directory
+    loadCommands(path1.join(__dirname, 'consoleCommands'));
+
     rl.on('line', async (msg) => {
-        bot.chat(msg)
-    })
+        if (msg.startsWith(prefix)) {
+            const args = msg.slice(prefix.length).trim().split(' ');
+            const command = args.shift().toLowerCase();  // Extract the command part
+
+
+            if (commandHandler[command]) {
+                commandHandler[command](bot, args);
+            } else {
+                bot.chat(msg); // Default behavior if the command is not found
+            }
+        } else {
+            bot.chat(msg)
+        }
+    });
+
 
 
     if (config.AutoAttack.enable) {
@@ -465,10 +532,10 @@ async function checkForUpdates() {
                     console.log("\x1b[32m%s\x1b[0m", `[CraftCMD] Your version (${packageVersion}) is up to date.`);
                 }
             } catch (e) {
-                console.error('Error parsing version data from GitHub:', e);
+                console.log('Error parsing version data from GitHub:', e);
             }
         });
     }).on('error', (e) => {
-        console.error('Error checking for updates:', e);
+        console.log('Error checking for updates:', e);
     });
 }
