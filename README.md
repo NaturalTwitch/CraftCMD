@@ -9,6 +9,7 @@ CraftCMD is a Minecraft bot powered by [mineflayer](https://github.com/Prismarin
 - **Auto-AFK:** Automatically send commands to prevent being kicked for inactivity.
 - **Auto-Attack:** Automatically attack hostile mobs near the bot.
 - **Automatic Reconnect:** Reconnect the bot automatically after being kicked.
+- **Custom Command Handling:** Gives the user to ability to create commands. 
 
 ## Installation
 
