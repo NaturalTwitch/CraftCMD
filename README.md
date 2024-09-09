@@ -9,17 +9,19 @@ CraftCMD is a Minecraft bot powered by [mineflayer](https://github.com/Prismarin
 - **Auto-AFK:** Automatically send commands to prevent being kicked for inactivity.
 - **Auto-Attack:** Automatically attack hostile mobs near the bot.
 - **Automatic Reconnect:** Reconnect the bot automatically after being kicked.
-- **Custom Command Handling:** Gives the user to ability to create commands. 
+- **Custom Command Handling:** Gives the user to ability to create commands.
 
 ## Installation
 
 1. **Clone the repository:**
+
     ```bash
     git clone https://github.com/NaturalTwitch/CraftCMD.git
     cd CraftCMD
     ```
 
 2. **Install dependencies:**
+
     ```bash
     npm install
     ```
@@ -73,9 +75,11 @@ armSwing=true                      # Toggle arm swing during the attack
 ## Usage
 
 1. **Start the bot:**
+
     ```bash
     node index.js
     ```
+
     The bot will automatically create a `setup.ini` file if it doesn't exist. Update the file with your credentials and settings, then restart the bot.
 
 2. **Using the Discord Bridge:**
@@ -92,4 +96,4 @@ This project is licensed under the MIT License.
 
 ## Contact
 
-For any questions or support, please open an issue on the GitHub repository or contact me at dev@mursybot.com or naturaltwitch on Discord.
+For any questions or support, please open an issue on the GitHub repository or contact me at <dev@mursybot.com> or naturaltwitch on Discord.
