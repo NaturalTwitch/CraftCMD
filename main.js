@@ -8,7 +8,7 @@ const rl = readline.createInterface({ input: process.stdin, output: process.stdo
 const { spawn } = require('child_process');
 const { createCanvas } = require('canvas');
 const https = require('https');
-const packageVersion = "3.0.0"; // Local version
+const packageVersion = "3.0.1"; // Local version
 const path = './setup.ini';
 
 
@@ -368,10 +368,12 @@ if (config.Advanced.discordBridge && config.Advanced.discord_token) {
             return;
         }
 
+        if (message.includes(`Next Shard`)) return;
+
         if (config.AutoTeleport.enable) {
             const tpRequest = new RegExp(config.AutoTeleport.teleportRequest);
 
-            if (message.includes(`Next Shard`)) return;
+
 
             const match = message.match(tpRequest);
 
